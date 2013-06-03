@@ -1,6 +1,6 @@
 OAuth2 Server Demo
 ==================
-
+edit something
 This is a small app running the [OAuth2 Server](https://github.com/bshaffer/oauth2-server-php) PHP library.
 
 **BEFORE READING ANY FURTHER** please [experiment with the live demo](http://brentertainment.com/oauth2/).
@@ -117,4 +117,4 @@ This will provide a dropdown at the top which will allow you to switch environme
 Contact
 -------
 
-Please contact Brent Shaffer (bshafs \<at\> gmail \<dot\> com) for more information
+Please see Brent Shaffer @ bshaffer's Git Hub account for the orignianl code information
