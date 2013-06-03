@@ -1,0 +1,54 @@
+{% extends "client/base.twig" %}
+
+{% block content %}
+    <h3>Resource Request Complete!</h3>
+    <p>
+            You have successfully called the APIs with your Access Token. 
+    </p>
+    <pre><code>Access Token: {{ token }} </code></pre>
+    
+    {% if response.friends is defined %}
+        <p>
+            Here are your friends:
+        </p>
+
+        <ul>
+            {% for friend in response.friends %}
+                <li>{{ friend }}</li>
+            {% endfor %}
+        </ul>
+
+        <p>Here is the full JSON response: </p>
+
+        <pre>{{ response|json_stringify }}</pre>
+        
+    {% elseif response.items is defined %}
+        <p>
+            Here are your tasks in Google:
+        </p>
+        {% for task in response.items %}
+        <h4>{{ task.title == '' ? 'Untitled Task' : task.title }}</h4>
+            <ul>        
+                <li>Status : {{ task.status }}</li>
+                <li>Last Updated on : {{ task.updated |date("m/d/Y \\a\\t g:i a") }}</li>
+                {% if task.notes is defined %}
+                    <li>Notes : {{ task.notes }}</li>
+                {% endif %}
+                {% if task.due is defined %}
+                    <li>Due date : {{ task.due|date("m/d/Y") }}</li>
+                {% endif %}
+            </ul>
+            {% endfor %}
+        
+        <p>Here is the full JSON response: </p>
+
+        <pre>{{ response|json_stringify }}</pre>
+    {% else %}    
+        <h4>Response:</h4>
+        {% include 'client/_error.twig' %}
+    {% endif %}
+
+    <pre><code>  The API call can be seen at <a href="{{ endpoint }}?access_token={{ token }}" target="_blank">{{endpoint}}</a></code></pre>
+
+    <a href="{{ path('homepage') }}">back</a>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "client/base.twig" %}
+
+{% block content %}
+    <h3>OAuth2.0 Demo Application</h3>
+    <p>
+        Welcome to the OAuth2.0 Demo Application!  This is an application that demos some of the basic OAuth2.0 Workflows.
+    </p>
+    <p>
+        The <code>Grant Type</code> used in this example is the <strong>Authorization Code</strong> grant type.
+        This is the most common workflow for OAuth2.0.  Clicking the "Authorize" button below will send you to an
+        OAuth2.0 Server to authorize: 
+    </p>
+    <!-- Modifid the query here to only add the ? if not an http address given in config file parameters.json -->
+    <!--<a class="button" href="{{ app.parameters.authorize_route|slice(0, 4) == 'http' ? app.parameters.authorize_route : url(app.parameters.authorize_route) }}?response_type=code&client_id={{app.parameters.client_id}}&redirect_uri={{ url('authorize_redirect')|url_encode() }}&state={{session_id}}">Authorize</a> -->
+    
+    
+    {# Build Optional parts of URI from the app.parameters to handle Google API request #}
+    {% set queryString = '' %}
+    
+    {% if app.parameters.client_id is defined %}
+        {% set queryString = queryString~'&client_id='~app.parameters.client_id %}
+    {% endif%}
+    {% if app.parameters.scope is defined %}
+        {% set queryString = queryString~'&scope='~app.parameters.scope %}
+    {% endif%}
+    {% if app.parameters.approval_prompt is defined %}
+        {% set queryString = queryString~'&approval_prompt='~app.parameters.approval_prompt %}
+    {% endif%}
+    {% if app.parameters.access_type is defined %}
+        {% set queryString = queryString~'&access_type='~app.parameters.access_type %}
+    {% endif%}
+   
+    <a class="button" href="{{ app.parameters.authorize_route|slice(0, 4) == 'http' ? app.parameters.authorize_route : url(app.parameters.authorize_route) }}?redirect_uri={{ url('authorize_redirect')|url_encode() }}&response_type=code{{ queryString }}&state={{session_id}}">Authorize</a>
+
+    <br><br><hr>
+{% endblock %}
