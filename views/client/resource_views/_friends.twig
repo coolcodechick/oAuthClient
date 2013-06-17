@@ -1,0 +1,23 @@
+
+{% if response.friends|length == 0 %}
+    <h3>You have no friends. </h3>
+{% elseif response.friends|length == 1 %}
+    <h3>You have one friend:</h3>
+{% else %}
+    <h3>Here are your friends:</h3>
+{% endif %}
+
+{% for friend in response.friends %}
+        {# Title case friends so first leter of every word or name in this case is capitalized #}
+    {{ friend.firstName|title }} {% if friend.lastName is defined %} {{ friend.lastName|title }} {% endif %}
+    <ul>
+    {% if friend.email is defined %}
+        <li>{{ friend.email }}</li>
+    {% endif %}
+    {% if friend.dob is defined %}
+        <li>{{ friend.dob }}</li>
+    {% endif %}    
+    </ul>        
+    <hr>
+{% endfor %}
+

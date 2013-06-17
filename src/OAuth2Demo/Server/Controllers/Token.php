@@ -6,7 +6,10 @@ use Silex\Application;
 
 class Token
 {
-    // Connects the routes in Silex
+    /**
+     * Connects the routes in Silex
+     * @param type $routing
+     */
     static public function addRoutes($routing)
     {
         $routing->post('/token', array(new self(), 'token'))->bind('grant');
@@ -15,7 +18,9 @@ class Token
     /**
      * This is called by the client app once the client has obtained
      * an authorization code from the Authorize Controller (@see OAuth2Demo\Server\Controllers\Authorize).
-     * If the request is valid, an access token will be returned
+     * If the request is valid, an access token will be returned.
+     * @param \Silex\Application $app
+     * @return type
      */
     public function token(Application $app)
     {

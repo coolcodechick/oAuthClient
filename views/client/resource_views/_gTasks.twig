@@ -1,0 +1,20 @@
+<p>
+    Here are your tasks in Google:
+</p>
+{% for task in response.items %}
+    <h4>{{ task.title == '' ? 'Untitled Task' : task.title }}</h4>
+        <ul>        
+            <li>Status : {{ task.status }}</li>
+            <li>Last Updated on : {{ task.updated |date("m/d/Y \\a\\t g:i a") }}</li>
+        {% if task.notes is defined %}
+            <li>Notes : {{ task.notes }}</li>
+        {% endif %}
+        {% if task.due is defined %}
+            <li>Due date : {{ task.due|date("m/d/Y") }}</li>
+        {% endif %}
+        </ul>
+{% endfor %}
+
+{# Display the JSON Response from the Google Tasks API #}
+<p>Here is the full JSON response: </p>
+<pre>{{ response|json_stringify }}</pre>

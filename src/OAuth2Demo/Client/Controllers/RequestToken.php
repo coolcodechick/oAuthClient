@@ -5,78 +5,96 @@ namespace OAuth2Demo\Client\Controllers;
 use OAuth2Demo\Shared\Curl;
 use Silex\Application;
 
+/**
+ * Uses Authorization Code Grant Type to retrieve a code in Step 1 ( see Oauth2Demo/Client/Controller/RecieveAuthorizationCode.php ) and then the token in Step 2 ( HERE )
+ * Once the access_token is recieved this renders the Twig template, this can be done behind the scenes, but renders a page for demonstration purposes.
+ * Should have it redirect to request resource.
+ * 
+ * REQUEST : HttpRequest = POST
+ *           REQUIRED : client_id               *** client credntials are passed in Authorization header ***
+ *                      client_secret 
+ *                      grant_type = "authorization_code"
+ *                      code
+ *                      redirect_uri
+ *           OPTIONAL : No Optional items listed in Standard Track
+ *                      
+ * RETURNS : Returns response and redirects with token in query string ( ie. ?access_token=____&state=____ )
+ *           REQUIRED : access_token
+ *                      expires_in
+ *                      token_type = "bearer"
+ *                      refresh_token
+ *           OPTIONAL : scope
+ */
 class RequestToken
 {
+    /**
+     * Connects the routes in Silex 
+     * @param type $routing
+     */
     static public function addRoutes($routing)
     {
         $routing->get('/client/request_token', array(new self(), 'requestToken'))->bind('request_token');
     }
 
+    /**
+     * Requests an access token 
+     * @param \Silex\Application $app
+     * @return type
+     */
     public function requestToken(Application $app)
     {
-        $twig   = $app['twig'];          // used to render twig templates
-        $config = $app['parameters'];    // the configuration for the current oauth implementation
-        $urlgen = $app['url_generator']; // generates URLs based on our routing
-        $curl   = new Curl();            // simple class used to make curl requests
-
-        $code = $app['request']->get('code');
-
-        // exchange authorization code for access token
-        $query = array(
-            'grant_type'    => 'authorization_code',
-            'code'          => $code,
-            'client_id'     => $config['client_id'],
-            'client_secret' => $config['client_secret'],
-            'redirect_uri'  => $urlgen->generate('authorize_redirect', array(), true),
-        );
-
-//var_dump($query);
-//
-//  GOOGLE TASKS API
-//array(5) { 
-//  ["grant_type"]=> string(18) "authorization_code" 
-//  ["code"]=> string(62) "4/SHOcNpoD8lePQfW5RUbt1EAuLSSN.AueP0zpSMlgVshQV0ieZDArsA-UUfgI" 
-//  ["client_id"]=> string(39) "341894499868.apps.googleusercontent.com" 
-//  ["client_secret"]=> string(24) "oKn5rpMEaMsI37IRjLr75iCi" 
-//  ["redirect_uri"]=> string(68) "http://localhost:8888/oauth2-server-demo/web/client/receive_authcode" }
-//  
-//  LOCKDIN
-//array(5) { 
-//  ["grant_type"]=> string(18) "authorization_code" 
-//  ["code"]=> string(40) "23da5016262a6533c8ce90dbbdeb5959df19a4ca" 
-//  ["client_id"]=> string(7) "demoapp" 
-//  ["client_secret"]=> string(8) "demopass" 
-//  ["redirect_uri"]=> string(68) "http://localhost:8888/oauth2-server-demo/web/client/receive_authcode" }
-//  
-//  MYAPP
-//array(5) { 
-//  ["grant_type"]=> string(18) "authorization_code" 
-//  ["code"]=> string(40) "29520d29828b1f637ea55fbda974e85919e0e69d" 
-//  ["client_id"]=> string(22) "OAuth Demo Application" 
-//  ["client_secret"]=> string(20) "a3b4b74330724a927bec" 
-//  ["redirect_uri"]=> string(68) "http://localhost:8888/oauth2-server-demo/web/client/receive_authcode" }  
-//  
-        // determine the token endpoint to call based on our config (do this somewhere else?)
-        $grantRoute = $config['token_route'];
+        $twig   = $app['twig'];             // used to render twig templates
+        $config = $app['parameters'];       // the configuration for the current oauth implementation
+        $urlgen = $app['url_generator'];    // generates URLs based on our routing
+        $session = $app['session'];         // the session (or user) object  
+        $curl   = new Curl();               // simple class used to make curl requests
         
-//var_dump($grantRoute);
-//  string(42) "https://accounts.google.com/o/oauth2/token"
-
-        $endpoint = 0 === strpos($grantRoute, 'http') ? $grantRoute : $urlgen->generate($grantRoute, array(), true);
-//var_dump($endpoint);
-//   string(42) "https://accounts.google.com/o/oauth2/token"
-//   
-        // make the token request via curl and decode the json response
-        $response = $curl->request($endpoint, $query, 'POST', $config['curl_options']);
-        $json = json_decode($response['response'], true);
-
-        // if it is succesful, display the token in our app
-        if (isset($json['access_token'])) {
-            //return $twig->render('client/show_access_token.twig', array('token' => $json['access_token']));
-            // Instead of displaying token, use it to get the requested resource and add the  lib to this page
-            return $app->redirect($app['url_generator']->generate('request_resource', array("token" => $json["access_token"])));
+        // Check the state
+        if ($app['request']->get('state') !== $session->getId()) {
+           return $twig->render('client/failed_authorization.twig', array('response' => array('error_description' => 'BOOM! Your session has expired.  Please try again.')));
         }
 
+        // Set endpoint for request
+        $endpoint = 0 === strpos($config['token_route'], 'http') ? $config['token_route'] : $urlgen->generate($config['token_route'], array(), true);
+        
+        // Set the grant_type and REQUIRED params
+        $query = array(
+                'grant_type'    => 'authorization_code',
+                'code'          => $app['request']->get('code'),
+                'redirect_uri'  => $urlgen->generate('authorize_redirect', array(), true),           
+        );
+        
+        // Configure options to use the Authorization Header to pass the client_id and client_secret
+        $options = array_merge(array(
+            'auth' => true,
+            'client_id'     => $config['client_id'],       //pulls from client configuration file
+            'client_secret' => $config['client_secret'],
+        ), $config['curl_options']);
+            
+//var_dump($endpoint);                                echo '<hr>';
+//var_dump($query);                                   echo '<hr>';
+//var_dump($config['curl_options']);                  echo '<hr>';
+
+        // Make the request via curl and decode the json response
+        $response = $curl->request($endpoint, $query, 'POST', $options);
+        $json = json_decode($response['response'], true);
+            
+//var_dump($response);                               echo '<hr>';            
+//var_dump($json);                                   echo '<hr>';            
+
+        // Store the refresh_token so it can be used to renew the access token later
+        if (isset($json['refresh_token'])) {
+            $session->set('refresh_token', $json['refresh_token']);
+        } 
+        
+        // Return a successful response
+        if (isset($json['access_token'])) {
+            return $twig->render('client/show_access_token.twig', array('token' => $json['access_token'], 'session_id' => $session->getId()));
+            // Instead of displaying token, use it to get the requested resource and add the  lib to this page
+            //return $app->redirect($app['url_generator']->generate('request_resource', array("token" => $json["access_token"])));
+        }
+        
+        // Return a failed response
         return $twig->render('client/failed_token_request.twig', array('response' => $json ? $json : $response));
     }  
 }

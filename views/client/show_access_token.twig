@@ -5,10 +5,10 @@
     <pre><code>  Access Token: {{ token }}  </code></pre>
 
     <p>
-        Now use this token to make a request to the OAuth2.0 Server's APIs:
+        Now use this token to make a request to the OAuth2.0 Server's APIs and keep the state {{ session_id }}:
     </p>
 
-    <a class="button" href="{{ path('request_resource', { 'token': token }) }}">make a resource request</a>
+    <a class="button" href="{{ path('request_resource', { 'token': token , 'state' : session_id }) }}">make a resource request</a>
 
     <div class="help"><em>This token can now be used multiple times to make API requests for this user.</em></div>
 

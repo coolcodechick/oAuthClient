@@ -1,18 +1,28 @@
 <?php
 
 namespace OAuth2Demo\Shared;
-
+/**
+ * Class used to make curl requests
+ */
 class Curl
 {
+    /**
+     *
+     * @var array 
+     */
     private $options;
 
+    /**
+     * 
+     * @param type $options
+     */
     public function __construct($options = array())
     {
         $this->options = array_merge(array(
             'debug'      => false,
             'http_port'  => '80',
             'user_agent' => 'PHP-curl-client (https://github.com/bshaffer/oauth2-server-demo)',
-            'timeout'    => 20,
+            'timeout'    => 5,
             'curlopts'   => null,
             'verifyssl'  => true,
         ), $options);
@@ -87,6 +97,10 @@ class Curl
             $curlOptions[CURLOPT_FOLLOWLOCATION] = true;
         }
 
+        if (isset($options['follow_redirects'])) {
+            $curlOptions[CURLOPT_FOLLOWLOCATION] = $options['follow_redirects'];
+        }
+        
         if (is_array($options['curlopts'])) {
             $curlOptions += $options['curlopts'];
         }
@@ -94,9 +108,32 @@ class Curl
         if (isset($options['proxy'])) {
             $curlOptions[CURLOPT_PROXY] = $options['proxy'];
         }
+        
+        // Set Authorization Header if 'auth' flag is true
+        if (isset($options['auth']) && $options['auth'] === true) {
+            $curlOptions[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
+            $curlOptions[CURLOPT_USERPWD] = $options['client_id'].':'.$options['client_secret'];
+        }
+//curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC); // Set authentication
+//curl_setopt($ch, CURLOPT_USERPWD, $this->token.$this->session.”:h20slkd”);
+        
+        
+echo '<hr>Options : START || <pre>';        
+echo $httpMethod; echo $url; echo '<br>';
+var_dump($curlOptions);
+echo '</pre> || END<hr>';
+//echo '<pre>';
+//var_dump($options);
+//echo '</pre>';
+//echo '<hr>';
+    //echo '<hr>';
+    //var_dump($curlOptions);
 
         $response = $this->doCurlCall($curlOptions);
 
+echo '<hr>RESPONSE : <pre>';        
+print_r(htmlentities($response['response']));
+echo '</pre><hr>';
         return $response;
     }
 

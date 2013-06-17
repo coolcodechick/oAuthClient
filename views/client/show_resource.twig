@@ -3,51 +3,43 @@
 {% block content %}
     <h3>Resource Request Complete!</h3>
     <p>
-            You have successfully called the APIs with your Access Token. 
+            You have successfully called the APIs with your Access Token and state {{ session_id }}. 
     </p>
     <pre><code>Access Token: {{ token }} </code></pre>
+  
+
+    {# If the profile or list of friends were returned it will display the resource_view and the JSON Responce only once #}
+    {% if response.profile is defined or response.friends is defined %}
+        {# Checks if a profile was returned and displays #}
+        {% if response.profile is defined %}
+            {% include 'client/resource_views/_profile.twig' %}
+        {% endif %}
     
-    {% if response.friends is defined %}
-        <p>
-            Here are your friends:
+        {# Checks if the list of friends were returned and displays #}
+        {% if response.friends is defined %}
+            {% include 'client/resource_views/_friends.twig' %}
+        {% endif %}
+        <hr>
+            <a href="{{ url('request_resource', { 'token': token , 'state': session_id } ) }}">View Basic Profile</a> &bull;
+            <a href="{{ url('request_profile', { 'token': token , 'state': session_id } ) }}">View Your Full Profile</a> &bull;
+            <a href="{{ url('request_friends', { 'token': token , 'state': session_id } ) }}">View Your Freinds Details</a>
+        <hr>
+        <p> The resoure(s) is saved on the server in the OAuth2Demo\Server\Controllers\Resource.php.
+            Modify the resource function to pull the data.
         </p>
-
-        <ul>
-            {% for friend in response.friends %}
-                <li>{{ friend }}</li>
-            {% endfor %}
-        </ul>
-
         <p>Here is the full JSON response: </p>
-
         <pre>{{ response|json_stringify }}</pre>
-        
+    
+    {# If neither the profile or friends was returned check if the Google Tasks API returned the items #}
     {% elseif response.items is defined %}
-        <p>
-            Here are your tasks in Google:
-        </p>
-        {% for task in response.items %}
-        <h4>{{ task.title == '' ? 'Untitled Task' : task.title }}</h4>
-            <ul>        
-                <li>Status : {{ task.status }}</li>
-                <li>Last Updated on : {{ task.updated |date("m/d/Y \\a\\t g:i a") }}</li>
-                {% if task.notes is defined %}
-                    <li>Notes : {{ task.notes }}</li>
-                {% endif %}
-                {% if task.due is defined %}
-                    <li>Due date : {{ task.due|date("m/d/Y") }}</li>
-                {% endif %}
-            </ul>
-            {% endfor %}
-        
-        <p>Here is the full JSON response: </p>
-
-        <pre>{{ response|json_stringify }}</pre>
+        {% include 'client/resource_views/_gTasks.twig' %}
+    {# Else there was an error and we did not get the responses we expected to display the Response recieved #}    
     {% else %}    
         <h4>Response:</h4>
         {% include 'client/_error.twig' %}
     {% endif %}
-
+    
+    {# Include a link to the API call that was made #}
     <pre><code>  The API call can be seen at <a href="{{ endpoint }}?access_token={{ token }}" target="_blank">{{endpoint}}</a></code></pre>
 
     <a href="{{ path('homepage') }}">back</a>

@@ -2,8 +2,15 @@
     #Options -MultiViews
 
     #RewriteEngine On
-    #RewriteBase /oauth2-server-demo/
-	
+    RewriteBase /oauth2-server-demo/web/
+
     #RewriteCond %{REQUEST_FILENAME} !-f
     #RewriteRule ^ index.php [L]
+	
+	# all files with .something are skipped
+	RewriteCond %{REQUEST_URI} \..+$
+	RewriteCond %{REQUEST_URI} !\.html$
+	RewriteRule .* - [L]
+	# the others are redirected to the front web controller
+	RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>

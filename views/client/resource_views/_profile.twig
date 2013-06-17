@@ -1,0 +1,18 @@
+<h3>Here is your profile :</h3>        
+{{ response.profile.firstName }} {{ response.profile.lastName }}
+<br>
+Location : {{ response.profile.location }}
+<br>
+Astrological Sign : {{ response.profile.astro_sign }}
+<br>
+"{{ response.profile.quote }}"
+<br>
+{% if response.profile.details is defined %}
+    <hr>
+    Email : {{ response.profile.details.email }}
+    <br>
+    Birthday : {{ response.profile.details.dob | date('M jS') }}
+    <br>
+    Phone : {{ response.profile.details.dob }}
+{% endif %}
+

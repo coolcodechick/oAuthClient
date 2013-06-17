@@ -32,22 +32,15 @@
                       {% endif %}
               </hgroup>
               <nav class="primary">
-                  <ul class="menu">
+                  <ul class="menu" style="white-space: nowrap;">
                       <li class="current">
-                          <a href="{{ path('homepage') }}">Home</a>
+                          <a href="{{ path('homepage') }}">Start Over</a>
                       </li>
-                      <li>
-                          <a href="http://brentertainment.com">Blog</a>
+                      {% if token is defined and session_id is defined %}
+                      <li class="current">
+                          <a href="{{ url('request_resource', { 'token': token , 'state': session_id } ) }}">Request Resource</a>
                       </li>
-                      <li>
-                          <a href="http://morehazards.com">Music</a>
-                      </li>
-                      <li>
-                          <a href="http://github.com/bshaffer">Github</a>
-                      </li>
-                      <li>
-                          <a href="http://twitter.com/bshaffer">Twitter</a>
-                      </li>
+                      {% endif %}
                   </ul>
               </nav>
               {% endblock %}
