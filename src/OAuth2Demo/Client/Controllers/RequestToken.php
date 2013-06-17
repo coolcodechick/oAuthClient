@@ -61,15 +61,26 @@ class RequestToken
         $query = array(
                 'grant_type'    => 'authorization_code',
                 'code'          => $app['request']->get('code'),
-                'redirect_uri'  => $urlgen->generate('authorize_redirect', array(), true),           
+                'redirect_uri'  => $urlgen->generate('authorize_redirect', array(), true),    
         );
         
-        // Configure options to use the Authorization Header to pass the client_id and client_secret
-        $options = array_merge(array(
-            'auth' => true,
-            'client_id'     => $config['client_id'],       //pulls from client configuration file
-            'client_secret' => $config['client_secret'],
-        ), $config['curl_options']);
+        
+        $options = $config['curl_options'];
+        // Google does not accept the client_id and client_secret in the Authorization header so...
+        // Check if it is the google enviroment and add the client_id and client_secret to the query 
+        if($app['session']->get('config_environment') == 'Google Tasks'){
+            $query = array_merge(array(
+                'client_id'     => $config['client_id'],       //pulls from client configuration file
+                'client_secret' => $config['client_secret'],
+            ), $query);
+        } else {
+            // Configure options to use the Authorization Header to pass the client_id and client_secret
+            $options = array_merge(array(
+                'auth' => true,
+                'client_id'     => $config['client_id'],       //pulls from client configuration file
+                'client_secret' => $config['client_secret'],
+            ), $options);
+        }
             
 //var_dump($endpoint);                                echo '<hr>';
 //var_dump($query);                                   echo '<hr>';

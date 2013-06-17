@@ -17,10 +17,10 @@ use Silex\Application;
  *                      
  * RETURNS : Returns response and redirects with token in query string ( ie. ?access_token=____&state=____ )
  *           REQUIRED : access_token
- *                      expires_in          *** Default 3600 ***
+ *                      expires_in              *** Default 3600 ***
  *                      token_type = "bearer"
  *           OPTIONAL : scope
- *                      refresh_token   *** by default refersh_token is not reissued but can configure 'always_issue_new_refresh_token' to TRUE ( see OAuth2Demo/Server/Server.php ~ line 42 )
+ *                      refresh_token           *** by default refersh_token is not reissued but can configure 'always_issue_new_refresh_token' to TRUE ( see OAuth2Demo/Server/Server.php ~ line 42 )
  * @author tanya brodsky
  */
 class refreshToken {
