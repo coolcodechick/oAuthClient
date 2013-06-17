@@ -114,26 +114,8 @@ class Curl
             $curlOptions[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
             $curlOptions[CURLOPT_USERPWD] = $options['client_id'].':'.$options['client_secret'];
         }
-//curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC); // Set authentication
-//curl_setopt($ch, CURLOPT_USERPWD, $this->token.$this->session.”:h20slkd”);
-        
-        
-echo '<hr>Options : START || <pre>';        
-echo $httpMethod; echo $url; echo '<br>';
-var_dump($curlOptions);
-echo '</pre> || END<hr>';
-//echo '<pre>';
-//var_dump($options);
-//echo '</pre>';
-//echo '<hr>';
-    //echo '<hr>';
-    //var_dump($curlOptions);
 
         $response = $this->doCurlCall($curlOptions);
-
-echo '<hr>RESPONSE : <pre>';        
-print_r(htmlentities($response['response']));
-echo '</pre><hr>';
         return $response;
     }
 
