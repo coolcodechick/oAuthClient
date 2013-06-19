@@ -72,5 +72,3 @@ class refreshToken {
         return $json ? $json : $response;
     }  
 }
-
-?>

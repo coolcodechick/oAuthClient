@@ -69,17 +69,10 @@ class ClientCredential {
             'client_secret' => $config['client_secret'],
         ), $config['curl_options']);
 
-//var_dump($endpoint);                                echo '<hr>';
-//var_dump($query);                                   echo '<hr>';
-//var_dump($config['curl_options']);                  echo '<hr>';
-
         // Send the request via curl and decode the json response
         $response = $curl->request($endpoint, $query, 'POST', $options);
         $json = json_decode($response['response'], TRUE);
 
-//var_dump($response);                                   echo '<hr>';            
-//var_dump($json);                                       echo '<hr>';                    
-        
         // Return a successful response
         if (isset($json['access_token'])) {
             return $twig->render('client/show_access_token.twig', array('token' => $json['access_token'], 'session_id' => $session->getId()));
@@ -89,5 +82,3 @@ class ClientCredential {
         return $twig->render('client/failed_token_request.twig', array('response' => $json ? $json : $response));
     }
 }
-
-?>

@@ -36,16 +36,12 @@ class Server implements ControllerProviderInterface
         $server->addGrantType($grantType);
        
         // Add additional grant types   
-        //$grantClientType = new \OAuth2_GrantType_ClientCredentials($storage);
         $server->addGrantType(new \OAuth2_GrantType_ClientCredentials($storage));
     
         $config = array('always_issue_new_refresh_token' => false);  //False is default set to true to receive refresh token every time
         $server->addGrantType(new \OAuth2_GrantType_RefreshToken($storage, $config));
    
-        $grantUserType = new \OAuth2_GrantType_UserCredentials($storage);
-        $server->addGrantType($grantUserType);
-        
-        
+        $server->addGrantType(new \OAuth2_GrantType_UserCredentials($storage));
 
         // Set up the scopes available
         $defaultScope = 'basic';

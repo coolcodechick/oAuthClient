@@ -64,8 +64,8 @@ class RequestToken
                 'redirect_uri'  => $urlgen->generate('authorize_redirect', array(), true),    
         );
         
-        
         $options = $config['curl_options'];
+        
         // Google does not accept the client_id and client_secret in the Authorization header so...
         // Check if it is the google enviroment and add the client_id and client_secret to the query 
         if($app['session']->get('config_environment') == 'Google Tasks'){
@@ -82,16 +82,9 @@ class RequestToken
             ), $options);
         }
             
-//var_dump($endpoint);                                echo '<hr>';
-//var_dump($query);                                   echo '<hr>';
-//var_dump($config['curl_options']);                  echo '<hr>';
-
         // Make the request via curl and decode the json response
         $response = $curl->request($endpoint, $query, 'POST', $options);
         $json = json_decode($response['response'], true);
-            
-//var_dump($response);                               echo '<hr>';            
-//var_dump($json);                                   echo '<hr>';            
 
         // Store the refresh_token so it can be used to renew the access token later
         if (isset($json['refresh_token'])) {

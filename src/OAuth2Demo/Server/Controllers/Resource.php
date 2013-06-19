@@ -21,7 +21,7 @@ class Resource
 
     public function apiResource(Application $app)
     {
-                // get the oauth server (configured in src/OAuth2Demo/Server/Server.php)
+        // get the oauth server (configured in src/OAuth2Demo/Server/Server.php)
         $server = $app['oauth_server'];
 
         $scopeRequired = 'basic'; // this resource requires "postonwall" scope
@@ -43,7 +43,6 @@ class Resource
                 'contact' => array(
                     'mailing_address'   => '123 Test Address Street Sunshine, FL 33913',
                     'email'             => 'info@mydemoapp.com'
-                    
                 )
             );
             return new Response(json_encode($api_response));

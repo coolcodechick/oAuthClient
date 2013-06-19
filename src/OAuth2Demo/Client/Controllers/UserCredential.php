@@ -72,18 +72,10 @@ class UserCredential {
             'client_id'     => $config['client_id'],       //pulls from client configuration file
             'client_secret' => $config['client_secret'],
         ), $config['curl_options']);
-        
-
-//var_dump($endpoint);                                echo '<hr>';
-//var_dump($query);                                   echo '<hr>';
-//var_dump($config['curl_options']);                  echo '<hr>';
-        
+      
         // make the token request via curl and decode the json response
         $response = $curl->request($endpoint, $query, 'POST', $options);
         $json = json_decode($response['response'], TRUE);
-
-//var_dump($response);                                   echo '<hr>';            
-//var_dump($json);                                       echo '<hr>';  
             
         // Return a successful response
         if (isset($json['access_token'])) {

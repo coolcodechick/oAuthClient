@@ -43,10 +43,6 @@ class ReceiveAuthorizationCode
         $session = $app['session']; // the session (or user) object
         $twig    = $app['twig'];    // used to render twig templates
 
-//var_dump($request->getAllQueryParameters());
-//echo '<pre>';
-//var_dump($request);
-//echo '</pre><hr />';
         // Check the state
         if ($request->get('state') !== $session->getId()) {
             return $twig->render('client/failed_authorization.twig', array('response' => array('error_description' => 'Your session has expired.  Please try again.')));

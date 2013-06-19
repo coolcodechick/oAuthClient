@@ -17,7 +17,6 @@ class Authorize
         $routing->get('/authorize', array(new self(), 'authorize'))->bind('authorize');
         $routing->post('/authorize', array(new self(), 'authorizeFormSubmit'))->bind('authorize_post');
         $routing->get('/authorize_client', array(new self(), 'authorizeImplicitGrant'))->bind('authorize_implicit');
-        
     }
 
     /**

@@ -68,5 +68,3 @@ class ImplicitGrant {
         return $app->redirect($endpoint.'?'.$query);
     }
 }
-
-?>
