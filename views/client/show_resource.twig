@@ -9,7 +9,14 @@
   
 
     {# If the profile or list of friends were returned it will display the resource_view and the JSON Responce only once #}
-    {% if response.profile is defined or response.friends is defined %}
+    {% include 'client/resource_views/_api_footer.twig' %}
+    {% if response.info is defined or response.profile is defined or response.friends is defined %}
+        <hr>
+            <a href="{{ url('request_resource')}}/basic?token={{ token }}&state={{ session_id }}">View Basic Profile</a> &bull;
+            <a href="{{ url('request_resource')}}/profile?token={{ token }}&state={{ session_id }}">View Your Full Profile Details</a> &bull;
+            <a href="{{ url('request_resource')}}/friends?token={{ token }}&state={{ session_id }}">View Your Freinds Details</a> &bull;
+            <a href="{{ url('request_resource')}}/profile,friends?token={{ token }}&state={{ session_id }}">View Complete Details</a>
+        <hr>
         {# Checks if a profile was returned and displays #}
         {% if response.profile is defined %}
             {% include 'client/resource_views/_profile.twig' %}
@@ -19,14 +26,10 @@
         {% if response.friends is defined %}
             {% include 'client/resource_views/_friends.twig' %}
         {% endif %}
-        <hr>
-            <a href="{{ url('request_resource', { 'token': token , 'state': session_id } ) }}">View Basic Profile</a> &bull;
-            <a href="{{ url('request_profile', { 'token': token , 'state': session_id } ) }}">View Your Full Profile</a> &bull;
-            <a href="{{ url('request_friends', { 'token': token , 'state': session_id } ) }}">View Your Freinds Details</a>
-        <hr>
-        <p> The resoure(s) is saved on the server in the OAuth2Demo\Server\Controllers\Resource.php.
+        <br>
+        <div class="help"> The resoure(s) is saved on the server in the OAuth2Demo\Server\Controllers\Resource.php.
             Modify the resource function to pull the data.
-        </p>
+        </div>
         <p>Here is the full JSON response: </p>
         <pre>{{ response|json_stringify }}</pre>
     
@@ -40,7 +43,10 @@
     {% endif %}
     
     {# Include a link to the API call that was made #}
-    <pre><code>  The API call can be seen at <a href="{{ endpoint }}?access_token={{ token }}" target="_blank">{{endpoint}}</a></code></pre>
-
+    {% if '?' in endpoint %}
+        <pre><code>  The API call can be seen at <a href="{{ endpoint }}&access_token={{ token }}" target="_blank">{{endpoint}}</a></code></pre>    
+    {% else %}
+        <pre><code>  The API call can be seen at <a href="{{ endpoint }}?access_token={{ token }}" target="_blank">{{endpoint}}</a></code></pre>
+    {% endif %}
     <a href="{{ path('homepage') }}">back</a>
 {% endblock %}

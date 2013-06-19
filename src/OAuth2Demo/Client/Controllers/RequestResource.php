@@ -14,6 +14,7 @@ class RequestResource
     static public function addRoutes($routing)
     {
         $routing->get('/client/request_resource', array(new self(), 'requestResource'))->bind('request_resource');
+        $routing->get('/client/request_resource/{slug}', array(new self(), 'requestResource'))->bind('request_resource/slug');
         $routing->get('/client/request_profile', array(new self(), 'requestProfile'))->bind('request_profile');
         $routing->get('/client/request_friends', array(new self(), 'requestFriends'))->bind('request_friends');
     }
@@ -39,11 +40,11 @@ class RequestResource
     }
 
     /**
-     * Requests the resource from the resource server
+     * Requests the resource from the resource server uses optional slug to determine endpoint of request
      * @param \Silex\Application $app
      * @return type Renders to a Twig template
      */
-    public function requestResource(Application $app)
+    public function requestResource(Application $app, $slug = null)
     {
         $session = $app['session'];         // the session (or user) object
         $twig   = $app['twig'];             // used to render twig templates
@@ -56,9 +57,14 @@ class RequestResource
 
         // Make the resource request with the token in the request body
         $config['resource_params']['access_token'] = $token;
+        // Make the resource request with the include= in the request body
+        $config['resource_params']['include'] = $slug;
+        
+        // Get the resource_route from the config file
+        $route = $config['resource_route'];
 
         // Set endpoint for the request
-        $endpoint = 0 === strpos($config['resource_route'], 'http') ? $config['resource_route'] : $urlgen->generate($config['resource_route'], array(), true);        
+        $endpoint = 0 === strpos($route, 'http') ? $route : $urlgen->generate($route, array(), true);
 
         // Make the resource request via curl and decode the json response
         $response = $curl->request($endpoint, $config['resource_params'], $config['resource_method'], $config['curl_options']);
@@ -83,75 +89,5 @@ class RequestResource
         } else {
             return $twig->render('client/show_resource.twig', array('response' => $json ? $json : $response, 'token' => $token, 'endpoint' => $endpoint, 'session_id' => $session->getId()));
         }
-    }
-    
-    /**
-     * Requests the full profile details from the resource server - requires API scope of profile
-     * @param \Silex\Application $app
-     * @return type Renders to a Twig template
-     */
-    public function requestProfile(Application $app)
-    {
-        $session = $app['session'];         // the session (or user) object
-        $twig   = $app['twig'];          // used to render twig templates
-        $config = $app['parameters'];    // the configuration for the current oauth implementation
-        $urlgen = $app['url_generator']; // generates URLs based on our routing
-        $curl  = new Curl();             // simple class used to make curl requests
-
-        // Check the state
-        if ($app['request']->get('state') !== $session->getId()) {
-           return $twig->render('client/failed_authorization.twig', array('response' => array('error_description' => 'Your session has expired.  Please try again.')));
-        }
-        
-        // Pull the token from the request
-        $token = $app['request']->get('token');
-
-        // Make the resource request with the token in the request body
-        $config['resource_params']['access_token'] = $token;
-
-        // Set endpoint for request
-        $endpoint = 0 === strpos($config['resource_profile_route'], 'http') ? $config['resource_profile_route'] : $urlgen->generate($config['resource_profile_route'], array(), true);
-
-        // Make the resource request via curl and decode the json response
-        $response = $curl->request($endpoint, $config['resource_params'], $config['resource_method'], $config['curl_options']);
-        $json = json_decode($response['response'], true);
-        
-        // Return the response
-        return $twig->render('client/show_resource.twig', array('response' => $json ? $json : $response, 'token' => $token, 'endpoint' => $endpoint, 'session_id' => $session->getId()));
-    }
-    
-    /**
-     * Requests the details of the friend list from the resource server - requires the API scope of friends
-     * @param \Silex\Application $app
-     * @return type Renders to a Twig template
-     */
-    public function requestFriends(Application $app)
-    {
-        $session = $app['session'];         // the session (or user) object
-        $twig   = $app['twig'];          // used to render twig templates
-        $config = $app['parameters'];    // the configuration for the current oauth implementation
-        $urlgen = $app['url_generator']; // generates URLs based on our routing
-        $curl  = new Curl();             // simple class used to make curl requests
-
-        // Pull the token from the request
-        $token = $app['request']->get('token');
-        
-        // Make the resource request with the token in the request body
-        $config['resource_params']['access_token'] = $token;
-
-        // Set endpoint for request
-        $endpoint = 0 === strpos($config['resource_friends_route'], 'http') ? $config['resource_friends_route'] : $urlgen->generate($config['resource_friends_route'], array(), true);
-
-        // Make the resource request via curl and decode the json response
-        $response = $curl->request($endpoint, $config['resource_params'], $config['resource_method'], $config['curl_options']);
-        $json = json_decode($response['response'], true);
-        
-        // Check the state
-        if ($app['request']->get('state') !== $session->getId()) {
-           return $twig->render('client/failed_authorization.twig', array('response' => array('error_description' => 'Your session has expired.  Please try again.')));
-        }
-        
-        // Return the response
-        return $twig->render('client/show_resource.twig', array('response' => $json ? $json : $response, 'token' => $token, 'endpoint' => $endpoint, 'session_id' => $session->getId()));
     }
 }

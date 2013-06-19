@@ -1,0 +1,11 @@
+{% if response.info is defined %}
+<hr>
+    <div class="help"><em>
+            Information made available by <strong>{{ response.info.organization }}</strong> @ {{ response.info.website }}
+    {% if response.contact is defined %}
+    <br>
+        Mail them at {{ response.contact.mailing_address }} -or- email to {{ response.contact.email }}
+    {% endif %}
+    </em></div>
+<hr>
+{% endif %}

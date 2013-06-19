@@ -13,28 +13,29 @@ class Resource
      */
     static public function addRoutes($routing)
     {
-        $routing->get('/apiResource', array(new self(), 'apiResource'))->bind('access_api');
-        $routing->get('/resource', array(new self(), 'resource'))->bind('access');
-        $routing->get('/profile', array(new self(), 'profile'))->bind('access_profile');
-        $routing->get('/friends', array(new self(), 'friends'))->bind('access_friends');
+        $routing->get('/apiResource', array(new self(), 'resource'))->bind('access');
     }
-
-    public function apiResource(Application $app)
+    
+    /**
+     * This is called by the client app once the client has obtained an access
+     * token for the current user.  If the token is valid, the resources requested will be called
+     * it will verify the request ant the scope required and build the response
+     * and the response will be returned to the client.
+     * @param \Silex\Application $app
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function resource(Application $app)
     {
-        // get the oauth server (configured in src/OAuth2Demo/Server/Server.php)
-        $server = $app['oauth_server'];
-
-        $scopeRequired = 'basic'; // this resource requires "postonwall" scope
+        $include = $app['request']->get('include');
         
-        /*if (!$server->verifyResourceRequest($app['request'])) {
-            return $server->getResponse();
-        }*///request before adding scope requirements
-        if (!$server->verifyResourceRequest($app['request'], $scopeRequired)) {
-            // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
+        $server = $app['oauth_server'];
+        
+        if (!$server->verifyResourceRequest($app['request'])) {
             return $server->getResponse();
         } else {
             // return a fake API response - not that exciting
             // @TODO return something more valuable, like the name of the logged in user
+            // Returns default api company info to display in footer does not have a scope requirement
             $api_response = array(
                 'info' => array (
                     'organization' => 'My Demo Application',
@@ -45,143 +46,127 @@ class Resource
                     'email'             => 'info@mydemoapp.com'
                 )
             );
-            return new Response(json_encode($api_response));
-        }
-    }
-
-
-    
-    /**
-     * This is called by the client app once the client has obtained an access
-     * token for the current user.  If the token is valid, the resource (in this
-     * case, the basic profile of the current user) will be returned to the client.
-     * Requires scope of 'basic' to be granted to the access token
-     * @param \Silex\Application $app
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function resource(Application $app)
-    {
-        // get the oauth server (configured in src/OAuth2Demo/Server/Server.php)
-        $server = $app['oauth_server'];
-
-        $scopeRequired = 'basic'; // this resource requires "postonwall" scope
+      
+            // Check which includes are included, verify the token has access to the scope, get those resources, and merge to api_response
+            if (strstr($include, 'basic')){
+                $scopeRequired = 'basic'; // this resource requires "friends" scope
+                if (!$server->verifyResourceRequest($app['request'], $scopeRequired)) {
+                    // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
+                    return $server->getResponse();
+                } else {
+                        $basic_profile = $this->getBasicInformation($app);
+                        $api_response = array_merge($api_response, $basic_profile);
+                }
+            } 
+            if (strstr($include, 'profile')){
+                $scopeRequired = 'profile';             // this resource requires "profile" scope
         
-        /*if (!$server->verifyResourceRequest($app['request'])) {
-            return $server->getResponse();
-        }*///request before adding scope requirements
-        if (!$server->verifyResourceRequest($app['request'], $scopeRequired)) {
-            // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
-            return $server->getResponse();
-        } else {
-            // return a fake API response - not that exciting
-            // @TODO return something more valuable, like the name of the logged in user
-            $api_response = array(
-                'profile' => array (
-                    'firstName' => 'Tanya',
-                    'lastName'  => 'Brodsky',
-                    'location'  => 'Orlando, FL',
-                    'astro_sign' => 'Taurus',
-                    'quote' => 'Something thoughtful here.',
-                ),
-                'friends' => array(
-                    array(
-                        'firstName' => 'johnny'
-                    ),
-                    array(
-                        'firstName' => 'matthew'
-                    ),
-                    array(
-                        'firstName' => 'jane'
-                    )
-                )
-            );
+                if (!$server->verifyResourceRequest($app['request'], $scopeRequired)) {
+                    return $server->getResponse();
+                } else {
+                    $profile = $this->getFullProfile($app);
+                    $api_response = array_merge($api_response, $profile);
+                }
+            } 
+            if (strstr($include, 'friends')) {
+                $scopeRequired = 'friends'; // this resource requires "friends" scope
+                if (!$server->verifyResourceRequest($app['request'], $scopeRequired)) {
+                    return $server->getResponse();
+                } else {
+                    $friends = $this->getFriendsDetails($app);
+                    $api_response = array_merge($api_response, $friends);    
+                }
+            }
             return new Response(json_encode($api_response));
         }
     }
+
+    /**
+     * Gets the requested resource
+     * @TODO Return something more valuable like pull from the database versus this static information
+     * @param \Silex\Application $app
+     * @return array
+     */
+    public function getBasicInformation(Application $app)
+    {
+        $api_response = array(
+            'profile' => array (
+                'firstName' => 'Tanya',
+                'lastName'  => 'Brodsky',
+                'location'  => 'Orlando, FL',
+                'astro_sign' => 'Taurus',
+                'quote' => 'Something thoughtful here.',
+            ),
+            'friends' => array(
+                array(
+                    'firstName' => 'johnny'
+                ),
+                array(
+                    'firstName' => 'matthew'
+                ),
+                array(
+                    'firstName' => 'jane'
+                )
+            )
+        );
+        return $api_response;
+    }
     
     /**
-     * This is called by the client app once the client has obtained an access
-     * token for the current user.  If the token is valid, the resource (in this
-     * case, the full profile of the current user including contact information)
-     * will be returned to the client.
-     * Requires scope of 'profile' to be granted to the access token
+     * Gets the requested resource 
+     * @TODO Return something more valuable like pull from the database versus this static information
      * @param \Silex\Application $app
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return array
      */
-    public function profile(Application $app)
+    public function getFullProfile(Application $app)
     {    
-        // get the oauth server (configured in src/OAuth2Demo/Server/Server.php)
-        $server = $app['oauth_server'];
-
-        $scopeRequired = 'profile';             // this resource requires "profile" scope
-        
-        if (!$server->verifyResourceRequest($app['request'], $scopeRequired)) {
-            // if the scope required is different from what the token allows, this will send a "401 insufficient_scope" error
-            return $server->getResponse();
-        } else {   
-            // return some fake API data in the response - not that exciting
-            // @TODO return something more valuable, or pull from the database
-            $api_response = array(
-                'profile' => array (
-                    'firstName' => 'Tanya',
-                    'lastName'  => 'Brodsky',
-                    'location'  => 'Orlando, FL',
-                    'astro_sign' => 'Taurus',
-                    'quote' => 'Something thoughtful here.',
-                    'details'   => array(
-                        'email'     => 'tanya@coolcodechick.com',
-                        'dob'       => '05/07/1984',
-                        'phone'     => '239-244-1234'
-                    )
-                ),
-            );
-            return new Response(json_encode($api_response));
-        }
+        $api_response = array(
+            'profile' => array (
+                'firstName' => 'Tanya',
+                'lastName'  => 'Brodsky',
+                'location'  => 'Orlando, FL',
+                'astro_sign' => 'Taurus',
+                'quote' => 'Something thoughtful here.',
+                'details'   => array(
+                    'email'     => 'tanya@coolcodechick.com',
+                    'dob'       => '05/07/1984',
+                    'phone'     => '239-244-1234'
+                 )
+            ),
+        );
+        return $api_response;
     }
     
     /**
-     * This is called by the client app once the client has obtained an access
-     * token for the current user.  If the token is valid, the resource (in this
-     * case, the full list of friends for the current user including contact information)
-     * will be returned to the client.
-     * Requires scope of 'friends' to be granted to the access token
+     * Gets the requested resource
+     * @TODO Return something more valuable like pull from the database versus this static information
      * @param \Silex\Application $app
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return array
      */
-    public function friends(Application $app)
+    public function getFriendsDetails(Application $app)
     {
-        // get the oauth server (configured in src/OAuth2Demo/Server/Server.php)
-        $server = $app['oauth_server'];
-
-        $scopeRequired = 'friends'; // this resource requires "friends" scope
-        if (!$server->verifyResourceRequest($app['request'], $scopeRequired)) {
-            return $server->getResponse();
-        } else {
-            // return some fake API data in the response - not that exciting
-            // @TODO return something more valuable, or pull from database
-            $api_response = array(
-                'friends' => array(
-                    array(
-                        'firstName' => 'johnny',
-                        'lastName' => 'bravo',
-                        'email' => 'jonny@gmail.com',
-                        'dob' => '12/04/1982'
-                    ),
-                    array(
-                        'firstName' => 'matthew',
-                        'lastName' => 'wehttam',
-                        'email' => 'matt@gmail.com',
-                        'dob' => '09/21/1984'
-                    ),
-                    array(
-                        'firstName' => 'jane',
-                        'lastName' => 'doe',
-                        'email' => 'jane@gmail.com',
-                        'dob' => '02/14/1983'
-                    )
+        $api_response = array(
+            'friends' => array(
+                array(
+                    'firstName' => 'johnny',
+                    'lastName' => 'bravo',
+                    'email' => 'jonny@gmail.com',
+                    'dob' => '12/04/1982'
+                ),
+                array(
+                    'firstName' => 'matthew',
+                    'lastName' => 'wehttam',
+                    'email' => 'matt@gmail.com',
+                    'dob' => '09/21/1984'
+                ),
+                array(
+                    'firstName' => 'jane',
+                    'lastName' => 'doe',
+                    'email' => 'jane@gmail.com',
+                    'dob' => '02/14/1983'
                 )
-            );
-            return new Response(json_encode($api_response));
-        }
+            )
+        );
+        return $api_response;
     }
 }
