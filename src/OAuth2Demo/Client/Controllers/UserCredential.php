@@ -54,7 +54,7 @@ class UserCredential {
         }
 
         // Set endpoint for request
-        $endpoint = 0 === strpos($config['user_grant'], 'http') ? $config['user_grant'] : $urlgen->generate($config['user_grant'], array(), true);
+        $endpoint = 0 === strpos($config['token_route'], 'http') ? $config['token_route'] : $urlgen->generate($config['token_route'], array(), true);
         
         $query = array(
             'grant_type'    => 'password',

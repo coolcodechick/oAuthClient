@@ -53,7 +53,7 @@ class ClientCredential {
             return $twig->render('client/failed_token_request.twig', array('response' => array( "error_description" => "Session Expired")));
         
         // Set endpoint for request
-        $endpoint = 0 === strpos($config['client_grant'], 'http') ? $config['client_grant'] : $urlgen->generate($config['client_grant'], array(), true);
+        $endpoint = 0 === strpos($config['token_route'], 'http') ? $config['token_route'] : $urlgen->generate($config['token_route'], array(), true);
         
         // Set the grant_type in the query 
         $query['grant_type'] = 'client_credentials';
