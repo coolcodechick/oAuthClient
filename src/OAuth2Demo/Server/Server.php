@@ -18,14 +18,14 @@ class Server implements ControllerProviderInterface
     public function setup(Application $app)
     {
         // ensure our Sqlite database exists
-        if (!file_exists($sqliteFile = __DIR__.'/../../../data/oauth.sqlite')) {
-            $this->generateSqliteDb();
-        }
+        // if (!file_exists($sqliteFile = __DIR__.'/../../../data/oauth.sqlite')) {
+        //    $this->generateSqliteDb();
+        //}
 
         // create PDO-based sqlite storage
         //$storage = new \OAuth2_Storage_Pdo(array('dsn' => 'sqlite:'.$sqliteFile));
-        // Switch storage to a MySQL Database        
-        $storage = new \OAuth2_Storage_Pdo(array('dsn' => 'mysql:host=localhost;dbname=oauth2_server_php', 'username' => 'root', 'password' => 'root'));
+        // Switch storage to a MySQL Database
+        $storage = new \OAuth2_Storage_Pdo(array('dsn' => 'mysql:host=10.200.102.248;dbname=oauth', 'username' => 'oauth', 'password' => 'xUA3my3qYhsDfjVQ'));
 
         // use HttpFountation Server, which returns a silex-compatible request object (https://github.com/bshaffer/oauth2-server-httpfoundation-bridge)
         // To override the default settings for the configurations pass them as an array in the second param
@@ -34,13 +34,13 @@ class Server implements ControllerProviderInterface
         // we only need "AuthorizationCode" grant type for this demo (we should show off all grant types eventually!)
         $grantType = new \OAuth2_GrantType_AuthorizationCode($storage);
         $server->addGrantType($grantType);
-       
-        // Add additional grant types   
+
+        // Add additional grant types
         $server->addGrantType(new \OAuth2_GrantType_ClientCredentials($storage));
-    
+
         $config = array('always_issue_new_refresh_token' => false);  //False is default set to true to receive refresh token every time
         $server->addGrantType(new \OAuth2_GrantType_RefreshToken($storage, $config));
-   
+
         $server->addGrantType(new \OAuth2_GrantType_UserCredentials($storage));
 
         // Set up the scopes available
@@ -86,6 +86,6 @@ class Server implements ControllerProviderInterface
 
     private function generateSqliteDb()
     {
-        include_once(__DIR__.'/../../../data/rebuild_db.php');
+       // include_once(__DIR__.'/../../../data/rebuild_db.php');
     }
 }

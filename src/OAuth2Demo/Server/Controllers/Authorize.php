@@ -54,16 +54,15 @@ class Authorize
         // call the oauth server and return the response
         return $server->handleAuthorizeRequest($app['request'], $authorized);
     }
-    
+
     public function authorizeImplicitGrant(Application $app)
     {
-     
         // get the oauth server (configured in src/OAuth2Demo/Server/Server.php)
         $server = $app['oauth_server'];
 
         // call the oauth server and return the response
         $return = $server->handleAuthorizeRequest($app['request'], true);
-        
+
         return $return;
     }
 }
